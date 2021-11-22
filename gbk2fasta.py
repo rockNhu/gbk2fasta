@@ -2,13 +2,19 @@
 #coding = UTF-8
 from Bio import SeqIO
 import os
-
+import sys
 class ex_seq():
     def __init__(self) -> None:
-        self.input_gate = input('gbk dir here')
+        self.input_gate = self.get_gate()
         self.na_ph = self.get_input()
         self.main()
     
+    def get_gate(self):
+        try:
+            return sys.argv[1]
+        except:
+            return input('gbk dir here')
+
     def get_input(self):
         def check_end(file):
             if file.endswith('gbk'):
