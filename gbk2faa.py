@@ -37,7 +37,18 @@ class ex_seq():
         if not os.path.exists('output'):
             os.mkdir('output')
         for name,path in self.na_ph:
-            SeqIO.convert(path,'genbank','output/{}.fasta'.format(name),'fasta')
+            output_name = f'output/{name}.faa'
+            output_line = []
+            for seq_record in SeqIO.parse(path,'genbank'):
+                for seq_feature in seq_record.features:
+                    if seq_feature.type == 'CDS':
+                        assert len(seq_feature.qualifiers['translation']) == 1
+                        tag_name = seq_feature.qualifiers['locus_tag'] + 'from' + seq_record.name
+                        seq = seq_feature.qualifiers['translation']
+                        output_line.append(f'>{tag_name}\n{seq}\n')
+            with open(output_name, 'w') as f:
+                f.writelines(output_line)
+
     
 if __name__ == "__main__":
     ex_seq()
