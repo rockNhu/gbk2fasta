@@ -34,21 +34,37 @@ class ex_seq():
         return na_ph
     
     def main(self):
-        if not os.path.exists('output'):
-            os.mkdir('output')
+        if not os.path.exists('faa_files'):
+            os.mkdir('faa_files')
         for name,path in self.na_ph:
-            output_name = f'output/{name}.faa'
+            output_name = f'faa_files/{name}.faa'
             output_line = []
             for seq_record in SeqIO.parse(path,'genbank'):
+                gp_count = 1
                 for seq_feature in seq_record.features:
                     if seq_feature.type == 'CDS':
-                        assert len(seq_feature.qualifiers['translation']) == 1
-                        tag_name = seq_feature.qualifiers['locus_tag'] + 'from' + seq_record.name
-                        seq = seq_feature.qualifiers['translation']
+                        try:
+                            locus_tag = seq_feature.qualifiers['locus_tag'][0]
+                        except KeyError:
+                            print(f'Error: locus_tag empty in {name}')
+                            locus_tag = f'gp{gp_count}'
+                        try:
+                            product = seq_feature.qualifiers['product'][0]
+                        except KeyError:
+                            print(f'Error: product empty in {name}')
+                            product = 'hypothetical protein'
+                        tag_name = f'{locus_tag} {product} [{name}]'
+                        try:
+                            seq = seq_feature.qualifiers['translation'][0]
+                        except:
+                            print(f'Error: translation empty in {name}')
+                            continue
                         output_line.append(f'>{tag_name}\n{seq}\n')
-            with open(output_name, 'w') as f:
-                f.writelines(output_line)
+                    gp_count += 1
+            if output_line:
+                with open(output_name, 'w') as f:
+                    f.writelines(output_line)
 
-    
+
 if __name__ == "__main__":
     ex_seq()
